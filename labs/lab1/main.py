@@ -1,6 +1,8 @@
 from tkinter import *
 
 import module1
+import module2
+import module3
 
 # число з повзунка. відміна його не чіпає
 text1 = ""
@@ -26,7 +28,15 @@ def robota1():
 
 
 def robota2():
-    pass
+    while True:
+        a = module2.run(win)
+        if a == 0:
+            return
+        b = module3.run(win)
+        if b == -1:
+            continue
+        # так і відміна просто закривають діалог
+        return
 
 
 menu = Menu(win)
