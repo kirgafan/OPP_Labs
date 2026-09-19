@@ -36,7 +36,7 @@ def run(parent):
 
     row = Frame(w)
     row.pack(pady=4)
-    Button(row, text="Назад", width=10, command=nazad).pack(side=LEFT, padx=6)
+    Button(row, text="< Назад", width=10, command=nazad).pack(side=LEFT, padx=6)
     Button(row, text="Так", width=10, command=tak).pack(side=LEFT, padx=6)
     Button(row, text="Відміна", width=10, command=vidmina).pack(side=LEFT, padx=6)
 

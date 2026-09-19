@@ -31,7 +31,7 @@ def run(parent):
 
     row = Frame(top)
     row.pack()
-    Button(row, text="Далі", width=12, command=dali).pack(side=LEFT, padx=6)
+    Button(row, text="Далі >", width=12, command=dali).pack(side=LEFT, padx=6)
     Button(row, text="Відміна", width=12, command=vidmina).pack(side=LEFT, padx=6)
 
     top.grab_set()
