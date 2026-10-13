@@ -6,6 +6,7 @@ from line import LineShape
 from rect import RectShape
 from ellipse import EllipseShape
 
+# слід
 figures = [None] * 105
 n =0
 rezhym = "крапка"
@@ -44,6 +45,21 @@ def na_ruh(e):
     global tyagnu
     if tyagnu == False:
         return
+    c.delete("temp")
+    if rezhym == "крапка":
+        c.create_oval(e.x - 4, e.y - 4, e.x + 4, e.y + 4, outline="blue", tags="temp")
+    elif rezhym == "лінія":
+        c.create_line(startx, starty, e.x, e.y, fill="blue", width=2, tags="temp")
+    elif rezhym == "прямокутник":
+        dx = e.x - startx
+        if dx < 0:
+            dx = -dx
+        dy = e.y - starty
+        if dy < 0:
+            dy = -dy
+        c.create_rectangle(startx - dx, starty - dy, startx + dx, starty + dy, outline="blue", width=2, tags="temp")
+    elif rezhym == "еліпс":
+        c.create_oval(startx, starty, e.x, e.y, outline="blue", width=2, tags="temp")
 
 
 def na_release(e):
