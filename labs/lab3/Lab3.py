@@ -1,10 +1,20 @@
 from tkinter import *
 from tkinter import messagebox
 
+from point import PointShape
+from line import LineShape
+from rect import RectShape
+from ellipse import EllipseShape
+
 
 class MainWin:
     def __init__(self):
+        self.figures = []
+        self.N = 106
         self.mode = "крапка"
+        self.startx = 0
+        self.starty = 0
+        self.tyagnu = False
 
         self.win = Tk()
         self.win.title(self.mode)
@@ -12,6 +22,8 @@ class MainWin:
 
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
+        self.c.bind("<ButtonPress-1>", self.on_down)
+        self.c.bind("<ButtonRelease-1>", self.on_up)
 
         menu = Menu(self.win)
         m_file = Menu(menu, tearoff=0)
@@ -45,6 +57,39 @@ class MainWin:
     def set_mode(self, mode):
         self.mode = mode
         self.win.title(mode)
+
+    def peremaluvaty(self):
+        self.c.delete("all")
+        for i in range(len(self.figures)):
+            self.figures[i].Show(self.c)
+
+    def on_down(self, e):
+        self.startx = e.x
+        self.starty = e.y
+        self.tyagnu = True
+
+    def on_up(self, e):
+        if self.tyagnu == False:
+            return
+        self.tyagnu = False
+        if len(self.figures) >= self.N:
+            return
+
+        if self.mode == "крапка":
+            obj = PointShape()
+            obj.set(e.x, e.y, e.x, e.y)
+        elif self.mode == "лінія":
+            obj = LineShape()
+            obj.set(self.startx, self.starty, e.x, e.y)
+        elif self.mode == "прямокутник":
+            obj = RectShape()
+            obj.set(self.startx, self.starty, e.x, e.y)
+        else:
+            obj = EllipseShape()
+            obj.set(self.startx, self.starty, e.x, e.y)
+
+        self.figures.append(obj)
+        self.peremaluvaty()
 
     def vyhod(self):
         self.win.destroy()
