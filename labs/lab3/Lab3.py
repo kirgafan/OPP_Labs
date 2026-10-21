@@ -69,17 +69,17 @@ class MainWin:
         self.starty = e.y
         self.tyagnu = True
 
-    # слід - червоний суцільний
+    # слід - синій суцільний
     def on_move(self, e):
         if self.tyagnu == False:
             return
         self.c.delete("temp")
         if self.mode == "крапка":
-            self.c.create_oval(e.x - 4, e.y - 4, e.x + 4, e.y + 4, outline="red", tags="temp")
+            self.c.create_oval(e.x - 4, e.y - 4, e.x + 4, e.y + 4, outline="blue", tags="temp")
         elif self.mode == "лінія":
-            self.c.create_line(self.startx, self.starty, e.x, e.y, fill="red", width=2, tags="temp")
+            self.c.create_line(self.startx, self.starty, e.x, e.y, fill="blue", width=2, tags="temp")
         elif self.mode == "прямокутник":
-            self.c.create_rectangle(self.startx, self.starty, e.x, e.y, outline="red", width=2, tags="temp")
+            self.c.create_rectangle(self.startx, self.starty, e.x, e.y, outline="blue", width=2, tags="temp")
         elif self.mode == "еліпс":
             dx = e.x - self.startx
             if dx < 0:
@@ -87,7 +87,7 @@ class MainWin:
             dy = e.y - self.starty
             if dy < 0:
                 dy = -dy
-            self.c.create_oval(self.startx - dx, self.starty - dy, self.startx + dx, self.starty + dy, outline="red", width=2, tags="temp")
+            self.c.create_oval(self.startx - dx, self.starty - dy, self.startx + dx, self.starty + dy, outline="blue", width=2, tags="temp")
 
     def on_up(self, e):
         if self.tyagnu == False:
