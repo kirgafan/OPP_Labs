@@ -1,3 +1,4 @@
+import os
 from tkinter import *
 from tkinter import messagebox
 
@@ -15,10 +16,24 @@ class MainWin:
         self.startx = 0
         self.starty = 0
         self.tyagnu = False
+        self.tip = None
+        self.pidkazka = {}
+        self.imgs = []
+        self.checks = {}
 
         self.win = Tk()
-        self.win.title(self.mode)
+        self.win.title("Lab3")
         self.win.geometry("780x560+60+40")
+
+        here = os.path.dirname(os.path.abspath(__file__))
+        # кнопки без тексту, тільки картинка
+        self.panel = Frame(self.win)
+        self.panel.pack(side=TOP, fill=X)
+
+        self.dodaty_knopku(os.path.join(here, "point.gif"), "Крапка", "крапка")
+        self.dodaty_knopku(os.path.join(here, "line.gif"), "Лінія", "лінія")
+        self.dodaty_knopku(os.path.join(here, "rect.gif"), "Прямокутник", "прямокутник")
+        self.dodaty_knopku(os.path.join(here, "ellipse.gif"), "Еліпс", "еліпс")
 
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
@@ -31,33 +46,69 @@ class MainWin:
         m_file.add_command(label="Вихід", command=self.vyhod)
         menu.add_cascade(label="Файл", menu=m_file)
 
-        m_obj = Menu(menu, tearoff=0)
-        m_obj.add_command(label="Крапка", command=self.krapka)
-        m_obj.add_command(label="Лінія", command=self.liniya)
-        m_obj.add_command(label="Прямокутник", command=self.pryam)
-        m_obj.add_command(label="Еліпс", command=self.elips)
-        menu.add_cascade(label="Об'єкти", menu=m_obj)
+        self.m_obj = Menu(menu, tearoff=0, postcommand=self.on_menu)
+        self.dodaty_punkt("Крапка", "крапка")
+        self.dodaty_punkt("Лінія", "лінія")
+        self.dodaty_punkt("Прямокутник", "прямокутник")
+        self.dodaty_punkt("Еліпс", "еліпс")
+        menu.add_cascade(label="Об'єкти", menu=self.m_obj)
 
         m_help = Menu(menu, tearoff=0)
         m_help.add_command(label="Про програму", command=self.pro)
         menu.add_cascade(label="Довідка", menu=m_help)
         self.win.config(menu=menu)
+        self.on_menu()
 
-    def krapka(self):
-        self.set_mode("крапка")
+    def dodaty_punkt(self, label, mode):
+        v = IntVar(value=0)
+        self.checks[mode] = v
 
-    def liniya(self):
-        self.set_mode("лінія")
+        def klik():
+            self.set_mode(mode)
 
-    def pryam(self):
-        self.set_mode("прямокутник")
+        self.m_obj.add_checkbutton(label=label, variable=v, command=klik)
 
-    def elips(self):
-        self.set_mode("еліпс")
+    def dodaty_knopku(self, path, text, mode):
+        img = PhotoImage(file=path)
+        self.imgs.append(img)
+
+        def klik():
+            self.set_mode(mode)
+
+        b = Button(self.panel, image=img, command=klik)
+        b.pack(side=LEFT, padx=3, pady=3)
+        self.pidkazka[b] = text
+        b.bind("<Enter>", self.OnNotify)
+        b.bind("<Leave>", self.spryaty_pidkazku)
+
+    def OnNotify(self, e):
+        if e.widget in self.pidkazka:
+            text = self.pidkazka[e.widget]
+        else:
+            return
+        self.spryaty_pidkazku(None)
+        x = e.widget.winfo_rootx() - self.win.winfo_rootx() + 4
+        y = e.widget.winfo_rooty() - self.win.winfo_rooty() + e.widget.winfo_height() + 2
+        t = Label(self.win, text=text, bg="#fff8c4", relief=SOLID, bd=1)
+        t.place(x=x, y=y)
+        t.lift()
+        self.tip = t
+
+    def spryaty_pidkazku(self, e):
+        if self.tip != None:
+            self.tip.destroy()
+            self.tip = None
+
+    def on_menu(self):
+        for mode in self.checks:
+            if mode == self.mode:
+                self.checks[mode].set(1)
+            else:
+                self.checks[mode].set(0)
 
     def set_mode(self, mode):
         self.mode = mode
-        self.win.title(mode)
+        self.on_menu()
 
     def peremaluvaty(self):
         self.c.delete("all")
@@ -69,7 +120,6 @@ class MainWin:
         self.starty = e.y
         self.tyagnu = True
 
-    # слід - синій суцільний
     def on_move(self, e):
         if self.tyagnu == False:
             return
@@ -121,4 +171,9 @@ class MainWin:
 
 
 app = MainWin()
-app.win.mainloop()
+
+if __name__ == "__main__":
+    # ЗАПУСК (PowerShell):
+    # cd C:\Users\wyxxn\Desktop\LabsOOPMain\labs\lab3
+    # python Lab3.py
+    app.win.mainloop()
