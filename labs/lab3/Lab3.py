@@ -15,9 +15,9 @@ class MainWin:
         self.mode = "крапка"
         self.startx = 0
         self.starty = 0
-        self.tyagnu = False
+        self.dragging = False
         self.tip = None
-        self.pidkazka = {}
+        self.tips = {}
         self.imgs = []
         self.checks = {}
 
@@ -30,10 +30,10 @@ class MainWin:
         self.panel = Frame(self.win)
         self.panel.pack(side=TOP, fill=X)
 
-        self.dodaty_knopku(os.path.join(here, "point.gif"), "Крапка", "крапка")
-        self.dodaty_knopku(os.path.join(here, "line.gif"), "Лінія", "лінія")
-        self.dodaty_knopku(os.path.join(here, "rect.gif"), "Прямокутник", "прямокутник")
-        self.dodaty_knopku(os.path.join(here, "ellipse.gif"), "Еліпс", "еліпс")
+        self.add_button(os.path.join(here, "point.gif"), "Крапка", "крапка")
+        self.add_button(os.path.join(here, "line.gif"), "Лінія", "лінія")
+        self.add_button(os.path.join(here, "rect.gif"), "Прямокутник", "прямокутник")
+        self.add_button(os.path.join(here, "ellipse.gif"), "Еліпс", "еліпс")
 
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
@@ -43,50 +43,50 @@ class MainWin:
 
         menu = Menu(self.win)
         m_file = Menu(menu, tearoff=0)
-        m_file.add_command(label="Вихід", command=self.vyhod)
+        m_file.add_command(label="Вихід", command=self.close_app)
         menu.add_cascade(label="Файл", menu=m_file)
 
         self.m_obj = Menu(menu, tearoff=0, postcommand=self.on_menu)
-        self.dodaty_punkt("Крапка", "крапка")
-        self.dodaty_punkt("Лінія", "лінія")
-        self.dodaty_punkt("Прямокутник", "прямокутник")
-        self.dodaty_punkt("Еліпс", "еліпс")
+        self.add_item("Крапка", "крапка")
+        self.add_item("Лінія", "лінія")
+        self.add_item("Прямокутник", "прямокутник")
+        self.add_item("Еліпс", "еліпс")
         menu.add_cascade(label="Об'єкти", menu=self.m_obj)
 
         m_help = Menu(menu, tearoff=0)
-        m_help.add_command(label="Про програму", command=self.pro)
+        m_help.add_command(label="Про програму", command=self.about)
         menu.add_cascade(label="Довідка", menu=m_help)
         self.win.config(menu=menu)
         self.on_menu()
 
-    def dodaty_punkt(self, label, mode):
+    def add_item(self, label, mode):
         v = IntVar(value=0)
         self.checks[mode] = v
 
-        def klik():
+        def click():
             self.set_mode(mode)
 
-        self.m_obj.add_checkbutton(label=label, variable=v, command=klik)
+        self.m_obj.add_checkbutton(label=label, variable=v, command=click)
 
-    def dodaty_knopku(self, path, text, mode):
+    def add_button(self, path, text, mode):
         img = PhotoImage(file=path)
         self.imgs.append(img)
 
-        def klik():
+        def click():
             self.set_mode(mode)
 
-        b = Button(self.panel, image=img, command=klik)
+        b = Button(self.panel, image=img, command=click)
         b.pack(side=LEFT, padx=3, pady=3)
-        self.pidkazka[b] = text
+        self.tips[b] = text
         b.bind("<Enter>", self.OnNotify)
-        b.bind("<Leave>", self.spryaty_pidkazku)
+        b.bind("<Leave>", self.hide_tip)
 
     def OnNotify(self, e):
-        if e.widget in self.pidkazka:
-            text = self.pidkazka[e.widget]
+        if e.widget in self.tips:
+            text = self.tips[e.widget]
         else:
             return
-        self.spryaty_pidkazku(None)
+        self.hide_tip(None)
         x = e.widget.winfo_rootx() - self.win.winfo_rootx() + 4
         y = e.widget.winfo_rooty() - self.win.winfo_rooty() + e.widget.winfo_height() + 2
         t = Label(self.win, text=text, bg="#fff8c4", relief=SOLID, bd=1)
@@ -94,7 +94,7 @@ class MainWin:
         t.lift()
         self.tip = t
 
-    def spryaty_pidkazku(self, e):
+    def hide_tip(self, e):
         if self.tip != None:
             self.tip.destroy()
             self.tip = None
@@ -110,7 +110,7 @@ class MainWin:
         self.mode = mode
         self.on_menu()
 
-    def peremaluvaty(self):
+    def redraw(self):
         self.c.delete("all")
         for i in range(len(self.figures)):
             self.figures[i].Show(self.c)
@@ -118,10 +118,10 @@ class MainWin:
     def on_down(self, e):
         self.startx = e.x
         self.starty = e.y
-        self.tyagnu = True
+        self.dragging = True
 
     def on_move(self, e):
-        if self.tyagnu == False:
+        if self.dragging == False:
             return
         self.c.delete("temp")
         if self.mode == "крапка":
@@ -140,9 +140,9 @@ class MainWin:
             self.c.create_oval(self.startx - dx, self.starty - dy, self.startx + dx, self.starty + dy, outline="blue", width=2, tags="temp")
 
     def on_up(self, e):
-        if self.tyagnu == False:
+        if self.dragging == False:
             return
-        self.tyagnu = False
+        self.dragging = False
         self.c.delete("temp")
         if len(self.figures) >= self.N:
             return
@@ -161,12 +161,12 @@ class MainWin:
             obj.set(self.startx, self.starty, e.x, e.y)
 
         self.figures.append(obj)
-        self.peremaluvaty()
+        self.redraw()
 
-    def vyhod(self):
+    def close_app(self):
         self.win.destroy()
 
-    def pro(self):
+    def about(self):
         messagebox.showinfo("Довідка", "Lab3. Кузнецов Кирило, група IM-о51")
 
 
