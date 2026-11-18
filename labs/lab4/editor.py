@@ -30,6 +30,7 @@ class MyEditor:
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
         self.c.bind("<ButtonPress-1>", self.on_down)
+        self.c.bind("<B1-Motion>", self.on_move)
         self.c.bind("<ButtonRelease-1>", self.on_up)
 
         menu = Menu(self.win)
@@ -81,6 +82,36 @@ class MyEditor:
         for i in range(len(self.figures)):
             self.figures[i].Show(self.c)
 
+    def trail(self, x, y):
+        self.c.delete("temp")
+        if self.mode == "крапка":
+            self.c.create_oval(x - 4, y - 4, x + 4, y + 4, outline="blue", tags="temp")
+        elif self.mode == "лінія" or self.mode == "лінія з кружечками":
+            self.c.create_line(self.startx, self.starty, x, y, fill="blue", width=2, tags="temp")
+            if self.mode == "лінія з кружечками":
+                r = 8
+                self.c.create_oval(self.startx - r, self.starty - r, self.startx + r, self.starty + r, outline="blue", tags="temp")
+                self.c.create_oval(x - r, y - r, x + r, y + r, outline="blue", tags="temp")
+        elif self.mode == "прямокутник":
+            self.c.create_rectangle(self.startx, self.starty, x, y, outline="blue", width=2, tags="temp")
+        elif self.mode == "еліпс":
+            dx = x - self.startx
+            if dx < 0:
+                dx = -dx
+            dy = y - self.starty
+            if dy < 0:
+                dy = -dy
+            self.c.create_oval(self.startx - dx, self.starty - dy, self.startx + dx, self.starty + dy, outline="blue", width=2, tags="temp")
+        elif self.mode == "каркас куба":
+            self.c.create_rectangle(self.startx, self.starty, x, y, outline="blue", width=2, tags="temp")
+            ox = 36
+            oy = -28
+            self.c.create_rectangle(self.startx + ox, self.starty + oy, x + ox, y + oy, outline="blue", width=2, tags="temp")
+            self.c.create_line(self.startx, self.starty, self.startx + ox, self.starty + oy, fill="blue", tags="temp")
+            self.c.create_line(x, self.starty, x + ox, self.starty + oy, fill="blue", tags="temp")
+            self.c.create_line(self.startx, y, self.startx + ox, y + oy, fill="blue", tags="temp")
+            self.c.create_line(x, y, x + ox, y + oy, fill="blue", tags="temp")
+
     def make_shape(self, x, y):
         if self.mode == "крапка":
             obj = PointShape()
@@ -107,10 +138,16 @@ class MyEditor:
         self.starty = e.y
         self.dragging = True
 
+    def on_move(self, e):
+        if self.dragging == False:
+            return
+        self.trail(e.x, e.y)
+
     def on_up(self, e):
         if self.dragging == False:
             return
         self.dragging = False
+        self.c.delete("temp")
         if len(self.figures) >= self.N:
             return
         self.figures.append(self.make_shape(e.x, e.y))
