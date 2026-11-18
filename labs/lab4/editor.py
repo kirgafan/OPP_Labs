@@ -2,10 +2,22 @@ import os
 from tkinter import *
 from tkinter import messagebox
 
+from point import PointShape
+from line import LineShape
+from rect import RectShape
+from ellipse import EllipseShape
+from line_circles import LineWithCircles
+from cube import CubeWireframe
+
 
 class MyEditor:
     def __init__(self):
+        self.figures = []
+        self.N = 106
         self.mode = "крапка"
+        self.startx = 0
+        self.starty = 0
+        self.dragging = False
         self.checks = {}
         self.win = None
         self.c = None
@@ -17,6 +29,8 @@ class MyEditor:
 
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
+        self.c.bind("<ButtonPress-1>", self.on_down)
+        self.c.bind("<ButtonRelease-1>", self.on_up)
 
         menu = Menu(self.win)
         m_file = Menu(menu, tearoff=0)
@@ -28,6 +42,8 @@ class MyEditor:
         self.add_item("Лінія", "лінія")
         self.add_item("Прямокутник", "прямокутник")
         self.add_item("Еліпс", "еліпс")
+        self.add_item("Лінія з кружечками", "лінія з кружечками")
+        self.add_item("Каркас куба", "каркас куба")
         menu.add_cascade(label="Об'єкти", menu=self.m_obj)
 
         m_help = Menu(menu, tearoff=0)
@@ -59,6 +75,46 @@ class MyEditor:
     def set_mode(self, mode):
         self.mode = mode
         self.on_menu()
+
+    def redraw(self):
+        self.c.delete("all")
+        for i in range(len(self.figures)):
+            self.figures[i].Show(self.c)
+
+    def make_shape(self, x, y):
+        if self.mode == "крапка":
+            obj = PointShape()
+            obj.set(x, y, x, y)
+        elif self.mode == "лінія":
+            obj = LineShape()
+            obj.set(self.startx, self.starty, x, y)
+        elif self.mode == "прямокутник":
+            obj = RectShape()
+            obj.set(self.startx, self.starty, x, y)
+        elif self.mode == "еліпс":
+            obj = EllipseShape()
+            obj.set(self.startx, self.starty, x, y)
+        elif self.mode == "лінія з кружечками":
+            obj = LineWithCircles()
+            obj.set(self.startx, self.starty, x, y)
+        else:
+            obj = CubeWireframe()
+            obj.set(self.startx, self.starty, x, y)
+        return obj
+
+    def on_down(self, e):
+        self.startx = e.x
+        self.starty = e.y
+        self.dragging = True
+
+    def on_up(self, e):
+        if self.dragging == False:
+            return
+        self.dragging = False
+        if len(self.figures) >= self.N:
+            return
+        self.figures.append(self.make_shape(e.x, e.y))
+        self.redraw()
 
     def close_app(self):
         self.win.destroy()
