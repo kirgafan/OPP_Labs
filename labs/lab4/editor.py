@@ -18,6 +18,9 @@ class MyEditor:
         self.startx = 0
         self.starty = 0
         self.dragging = False
+        self.tip = None
+        self.tips = {}
+        self.imgs = []
         self.checks = {}
         self.win = None
         self.c = None
@@ -26,6 +29,17 @@ class MyEditor:
         self.win = Tk()
         self.win.title("Lab4")
         self.win.geometry("820x580+40+30")
+
+        here = os.path.dirname(os.path.abspath(__file__))
+        self.panel = Frame(self.win)
+        self.panel.pack(side=TOP, fill=X)
+
+        self.add_button(os.path.join(here, "point.gif"), "Крапка", "крапка")
+        self.add_button(os.path.join(here, "line.gif"), "Лінія", "лінія")
+        self.add_button(os.path.join(here, "rect.gif"), "Прямокутник", "прямокутник")
+        self.add_button(os.path.join(here, "ellipse.gif"), "Еліпс", "еліпс")
+        self.add_button(os.path.join(here, "linecirc.gif"), "Лінія з кружечками", "лінія з кружечками")
+        self.add_button(os.path.join(here, "cube.gif"), "Каркас куба", "каркас куба")
 
         self.c = Canvas(self.win, bg="#d0d0d0")
         self.c.pack(fill=BOTH, expand=True)
@@ -65,6 +79,37 @@ class MyEditor:
             self.set_mode(mode)
 
         self.m_obj.add_checkbutton(label=label, variable=v, command=click)
+
+    def add_button(self, path, text, mode):
+        img = PhotoImage(file=path)
+        self.imgs.append(img)
+
+        def click():
+            self.set_mode(mode)
+
+        b = Button(self.panel, image=img, command=click)
+        b.pack(side=LEFT, padx=3, pady=3)
+        self.tips[b] = text
+        b.bind("<Enter>", self.OnNotify)
+        b.bind("<Leave>", self.hide_tip)
+
+    def OnNotify(self, e):
+        if e.widget in self.tips:
+            text = self.tips[e.widget]
+        else:
+            return
+        self.hide_tip(None)
+        x = e.widget.winfo_rootx() - self.win.winfo_rootx() + 4
+        y = e.widget.winfo_rooty() - self.win.winfo_rooty() + e.widget.winfo_height() + 2
+        t = Label(self.win, text=text, bg="#fff8c4", relief=SOLID, bd=1)
+        t.place(x=x, y=y)
+        t.lift()
+        self.tip = t
+
+    def hide_tip(self, e):
+        if self.tip != None:
+            self.tip.destroy()
+            self.tip = None
 
     def on_menu(self):
         for mode in self.checks:
