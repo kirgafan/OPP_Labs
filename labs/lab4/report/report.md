@@ -57,9 +57,9 @@
 
 Тут номер знову Ж = 5, не 6. Номер непарний, тому MyEditor - глобальний статичний об'єкт. Він створюється одразу в editor.py, це ще не Singleton.
 
-Кольори фігур лишив як у лабі 3: прямокутник жовтий по двох кутах, еліпс білий від центру. Гумовий слід усіх фігур тепер пунктир. Колір пунктиру в методичці не названий, синій суцільний з лаби 3 я прибрав, малюю чорним пунктиром.
+Кольори фігур лишив як у лабі 3: прямокутник жовтий по двох кутах, еліпс білий від центру. Гумовий слід усіх фігур тепер пунктир. Колір пунктиру в методичці не названий, синій суцільний з лаби 3 я прибрав, малюю чорним пунктиром. Для сліду викликаю Show з preview=True.
 
-Додав лінію з кружечками і каркас куба. Класи зібрані множинним успадкуванням. У Show нових фігур я не малюю все заново, а кличу Show батьків по імені: LineShape, EllipseShape, RectShape.
+Додав лінію з кружечками і каркас куба. Класи зібрані множинним успадкуванням. У Show нових фігур я не малюю все заново, а кличу Show батьків по імені: LineShape, EllipseShape, RectShape. Грані куба прозорі, щоб було видно всі ребра.
 
 Кнопок на панелі шість, знову тільки іконка і підказка.
 
@@ -213,33 +213,7 @@ class MyEditor:
 
     def trail(self, x, y):
         self.c.delete("temp")
-        if self.mode == "крапка":
-            self.c.create_oval(x - 4, y - 4, x + 4, y + 4, outline="black", dash=(4, 3), tags="temp")
-        elif self.mode == "лінія" or self.mode == "лінія з кружечками":
-            self.c.create_line(self.startx, self.starty, x, y, fill="black", width=2, dash=(4, 3), tags="temp")
-            if self.mode == "лінія з кружечками":
-                r = 8
-                self.c.create_oval(self.startx - r, self.starty - r, self.startx + r, self.starty + r, outline="black", dash=(4, 3), tags="temp")
-                self.c.create_oval(x - r, y - r, x + r, y + r, outline="black", dash=(4, 3), tags="temp")
-        elif self.mode == "прямокутник":
-            self.c.create_rectangle(self.startx, self.starty, x, y, outline="black", width=2, dash=(4, 3), tags="temp")
-        elif self.mode == "еліпс":
-            dx = x - self.startx
-            if dx < 0:
-                dx = -dx
-            dy = y - self.starty
-            if dy < 0:
-                dy = -dy
-            self.c.create_oval(self.startx - dx, self.starty - dy, self.startx + dx, self.starty + dy, outline="black", width=2, dash=(4, 3), tags="temp")
-        elif self.mode == "каркас куба":
-            self.c.create_rectangle(self.startx, self.starty, x, y, outline="black", width=2, dash=(4, 3), tags="temp")
-            ox = 36
-            oy = -28
-            self.c.create_rectangle(self.startx + ox, self.starty + oy, x + ox, y + oy, outline="black", width=2, dash=(4, 3), tags="temp")
-            self.c.create_line(self.startx, self.starty, self.startx + ox, self.starty + oy, fill="black", dash=(4, 3), tags="temp")
-            self.c.create_line(x, self.starty, x + ox, self.starty + oy, fill="black", dash=(4, 3), tags="temp")
-            self.c.create_line(self.startx, y, self.startx + ox, y + oy, fill="black", dash=(4, 3), tags="temp")
-            self.c.create_line(x, y, x + ox, y + oy, fill="black", dash=(4, 3), tags="temp")
+        self.make_shape(x, y).Show(self.c, preview=True)
 
     def make_shape(self, x, y):
         if self.mode == "крапка":
@@ -296,7 +270,10 @@ editor = MyEditor()
 ### shape.py
 
 ```python
-class Shape:
+from abc import ABC, abstractmethod
+
+
+class Shape(ABC):
     def __init__(self):
         self.x1 = 0
         self.y1 = 0
@@ -309,7 +286,8 @@ class Shape:
         self.x2 = x2
         self.y2 = y2
 
-    def Show(self, c):
+    @abstractmethod
+    def Show(self, c, preview=False):
         pass
 ```
 
@@ -323,9 +301,13 @@ class PointShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c):
+    def Show(self, c, preview=False):
         r = 4
-        c.create_oval(self.x1 - r, self.y1 - r, self.x1 + r, self.y1 + r, outline="black", fill="black")
+        fill = "" if preview else "black"
+        dash = (4, 3) if preview else ()
+        tags = "temp" if preview else ""
+        c.create_oval(self.x1 - r, self.y1 - r, self.x1 + r, self.y1 + r,
+                      outline="black", fill=fill, dash=dash, tags=tags)
 ```
 
 ### line.py
@@ -338,8 +320,11 @@ class LineShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c):
-        c.create_line(self.x1, self.y1, self.x2, self.y2, fill="black", width=2)
+    def Show(self, c, preview=False):
+        dash = (4, 3) if preview else ()
+        tags = "temp" if preview else ""
+        c.create_line(self.x1, self.y1, self.x2, self.y2,
+                      fill="black", width=2, dash=dash, tags=tags)
 ```
 
 ### rect.py
@@ -352,8 +337,13 @@ class RectShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c):
-        c.create_rectangle(self.x1, self.y1, self.x2, self.y2, outline="black", fill="yellow", width=2)
+    def Show(self, c, preview=False, fill="yellow"):
+        if preview:
+            fill = ""
+        dash = (4, 3) if preview else ()
+        tags = "temp" if preview else ""
+        c.create_rectangle(self.x1, self.y1, self.x2, self.y2,
+                           outline="black", fill=fill, width=2, dash=dash, tags=tags)
 ```
 
 ### ellipse.py
@@ -366,7 +356,7 @@ class EllipseShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c):
+    def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
@@ -377,7 +367,11 @@ class EllipseShape(Shape):
         dy = y2 - y1
         if dy < 0:
             dy = -dy
-        c.create_oval(x1 - dx, y1 - dy, x1 + dx, y1 + dy, outline="black", fill="white", width=2)
+        fill = "" if preview else "white"
+        dash = (4, 3) if preview else ()
+        tags = "temp" if preview else ""
+        c.create_oval(x1 - dx, y1 - dy, x1 + dx, y1 + dy,
+                      outline="black", fill=fill, width=2, dash=dash, tags=tags)
 ```
 
 ### line_circles.py
@@ -391,25 +385,25 @@ class LineWithCircles(LineShape, EllipseShape):
     def __init__(self):
         LineShape.__init__(self)
 
-    def Show(self, c):
+    def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
         y2 = self.y2
-        LineShape.Show(self, c)
+        LineShape.Show(self, c, preview)
         r = 8
         # ліве коло
         self.x1 = x1
         self.y1 = y1
         self.x2 = x1 + r
         self.y2 = y1 + r
-        EllipseShape.Show(self, c)
+        EllipseShape.Show(self, c, preview)
         # праве коло, координати повернути назад
         self.x1 = x2
         self.y1 = y2
         self.x2 = x2 + r
         self.y2 = y2 + r
-        EllipseShape.Show(self, c)
+        EllipseShape.Show(self, c, preview)
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
@@ -427,19 +421,19 @@ class CubeWireframe(LineShape, RectShape):
     def __init__(self):
         LineShape.__init__(self)
 
-    def Show(self, c):
+    def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
         y2 = self.y2
-        RectShape.Show(self, c)
+        RectShape.Show(self, c, preview, fill="")
         ox = 36
         oy = -28
         self.x1 = x1 + ox
         self.y1 = y1 + oy
         self.x2 = x2 + ox
         self.y2 = y2 + oy
-        RectShape.Show(self, c)
+        RectShape.Show(self, c, preview, fill="")
         edges = [
             (x1, y1, x1 + ox, y1 + oy),
             (x2, y1, x2 + ox, y1 + oy),
@@ -451,7 +445,7 @@ class CubeWireframe(LineShape, RectShape):
             self.y1 = edges[i][1]
             self.x2 = edges[i][2]
             self.y2 = edges[i][3]
-            LineShape.Show(self, c)
+            LineShape.Show(self, c, preview)
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
@@ -464,25 +458,26 @@ class CubeWireframe(LineShape, RectShape):
 
 ### Діаграма класів
 
+```mermaid
+classDiagram
+    direction TB
+    class Shape {
+        <<abstract>>
+        x1, y1, x2, y2
+        set()
+        Show()
+    }
+    Shape <|-- PointShape
+    Shape <|-- LineShape
+    Shape <|-- RectShape
+    Shape <|-- EllipseShape
+    LineShape <|-- LineWithCircles
+    EllipseShape <|-- LineWithCircles
+    LineShape <|-- CubeWireframe
+    RectShape <|-- CubeWireframe
 ```
-                    Shape
-                   x1 y1 x2 y2
-                   set()
-                   Show()
-                      |
-        +--------+----+----+--------+
-        |        |         |        |
-      Point    Line      Rect    Ellipse
-                  \       /  \      /
-                   \     /    \    /
-              LineWithCircles   CubeWireframe
-              (Line + Ellipse)  (Line + Rect)
 
-MyEditor  - глобальний статичний об'єкт
-  figures, mode
-  on_down, on_move, on_up
-  redraw
-```
+MyEditor - глобальний статичний об'єкт. У ньому є figures, mode та методи on_down, on_move, on_up і redraw.
 
 Обидві гілки нових фігур сходяться в Shape, координати лежать там один раз.
 

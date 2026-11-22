@@ -5,7 +5,7 @@ class EllipseShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c):
+    def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
@@ -16,4 +16,8 @@ class EllipseShape(Shape):
         dy = y2 - y1
         if dy < 0:
             dy = -dy
-        c.create_oval(x1 - dx, y1 - dy, x1 + dx, y1 + dy, outline="black", fill="white", width=2)
+        fill = "" if preview else "white"
+        dash = (4, 3) if preview else ()
+        tags = "temp" if preview else ""
+        c.create_oval(x1 - dx, y1 - dy, x1 + dx, y1 + dy,
+                      outline="black", fill=fill, width=2, dash=dash, tags=tags)

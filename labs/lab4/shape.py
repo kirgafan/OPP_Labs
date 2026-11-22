@@ -1,4 +1,7 @@
-class Shape:
+from abc import ABC, abstractmethod
+
+
+class Shape(ABC):
     def __init__(self):
         self.x1 = 0
         self.y1 = 0
@@ -11,5 +14,6 @@ class Shape:
         self.x2 = x2
         self.y2 = y2
 
-    def Show(self, c):
+    @abstractmethod
+    def Show(self, c, preview=False):
         pass
