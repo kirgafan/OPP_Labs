@@ -59,7 +59,7 @@
 
 Кольори фігур лишив як у лабі 3: прямокутник жовтий по двох кутах, еліпс білий від центру. Гумовий слід усіх фігур тепер пунктир. Колір пунктиру в методичці не названий, синій суцільний з лаби 3 я прибрав, малюю чорним пунктиром. Для сліду викликаю Show з preview=True.
 
-Додав лінію з кружечками і каркас куба. Класи зібрані множинним успадкуванням. У Show нових фігур я не малюю все заново, а кличу Show батьків по імені: LineShape, EllipseShape, RectShape. Грані куба прозорі, щоб було видно всі ребра.
+Додав лінію з кружечками і каркас куба. Класи зібрані множинним успадкуванням. У Show нових фігур я не малюю все заново, а кличу Show батьків по імені: LineShape, EllipseShape, RectShape. У Shape задаю `is_filled = True`. У куба `is_filled = False`, тому RectShape.Show малює обидві грані без заливки. Звичайний прямокутник малюється жовтим.
 
 Кнопок на панелі шість, знову тільки іконка і підказка.
 
@@ -275,6 +275,7 @@ from abc import ABC, abstractmethod
 
 class Shape(ABC):
     def __init__(self):
+        self.is_filled = True
         self.x1 = 0
         self.y1 = 0
         self.x2 = 0
@@ -337,9 +338,8 @@ class RectShape(Shape):
     def __init__(self):
         Shape.__init__(self)
 
-    def Show(self, c, preview=False, fill="yellow"):
-        if preview:
-            fill = ""
+    def Show(self, c, preview=False):
+        fill = "yellow" if self.is_filled and not preview else ""
         dash = (4, 3) if preview else ()
         tags = "temp" if preview else ""
         c.create_rectangle(self.x1, self.y1, self.x2, self.y2,
@@ -420,20 +420,21 @@ from rect import RectShape
 class CubeWireframe(LineShape, RectShape):
     def __init__(self):
         LineShape.__init__(self)
+        self.is_filled = False
 
     def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
         y2 = self.y2
-        RectShape.Show(self, c, preview, fill="")
+        RectShape.Show(self, c, preview)
         ox = 36
         oy = -28
         self.x1 = x1 + ox
         self.y1 = y1 + oy
         self.x2 = x2 + ox
         self.y2 = y2 + oy
-        RectShape.Show(self, c, preview, fill="")
+        RectShape.Show(self, c, preview)
         edges = [
             (x1, y1, x1 + ox, y1 + oy),
             (x2, y1, x2 + ox, y1 + oy),
@@ -464,6 +465,7 @@ classDiagram
     class Shape {
         <<abstract>>
         x1, y1, x2, y2
+        is_filled
         set()
         Show()
     }

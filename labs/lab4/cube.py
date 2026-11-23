@@ -5,20 +5,21 @@ from rect import RectShape
 class CubeWireframe(LineShape, RectShape):
     def __init__(self):
         LineShape.__init__(self)
+        self.is_filled = False
 
     def Show(self, c, preview=False):
         x1 = self.x1
         y1 = self.y1
         x2 = self.x2
         y2 = self.y2
-        RectShape.Show(self, c, preview, fill="")
+        RectShape.Show(self, c, preview)
         ox = 36
         oy = -28
         self.x1 = x1 + ox
         self.y1 = y1 + oy
         self.x2 = x2 + ox
         self.y2 = y2 + oy
-        RectShape.Show(self, c, preview, fill="")
+        RectShape.Show(self, c, preview)
         edges = [
             (x1, y1, x1 + ox, y1 + oy),
             (x2, y1, x2 + ox, y1 + oy),
